@@ -1,0 +1,40 @@
+version: '3'
+
+services:
+  auth_app:
+    image: 19992240/kotlin-application:latest
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      DATASOURCE_URL: jdbc:mysql://auth_app_mysql:3306
+      DATASOURCE_USER: root
+      REDIS_HOST: auth_app_redis
+      REDIS_PORT: 6379
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "auth_app_mysql"
+      - "auth_app_redis"
+
+  auth_app_mysql:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD:
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+      MYSQL_DATABASE: kotlin_application
+      MYSQL_USER: docker
+      MYSQL_PASSWORD: docker
+      TZ: 'Asia/Tokyo'
+    volumes:
+      - ./db/data:/var/lib/mysql
+      - ./db/my.cnf:/etc/mysql/conf.d/my.cnf
+      - ./db/sql:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    command: mysqld --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --innodb_use_native_aio=0
+
+  auth_app_redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    volumes:
+      - "./redis/data:/data"
